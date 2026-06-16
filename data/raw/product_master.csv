@@ -1,0 +1,11 @@
+﻿product_id,product_name,category,base_demand,unit_price
+P1000,น้ำดื่ม 600ml,Beverage,40,7
+P1001,บะหมี่กึ่งสำเร็จรูป,Dry Food,35,6
+P1002,นมกล่อง UHT,Dairy,25,12
+P1003,ขนมปัง,Bakery,30,15
+P1004,ผงซักฟอก 1kg,Household,12,45
+P1005,น้ำมันพืช 1L,Cooking,10,55
+P1006,ไข่ไก่ เบอร์ 2 (แผง),Fresh,18,120
+P1007,กาแฟ 3in1,Beverage,22,8
+P1008,ยาสีฟัน,Personal Care,8,35
+P1009,ข้าวสาร 5kg,Staple,6,220

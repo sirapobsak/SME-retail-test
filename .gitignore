@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# หมายเหตุ: data/raw/*.csv และ outputs/* ถูก commit ไว้โดยตั้งใจ
+# เพื่อให้กรรมการเห็นผลลัพธ์ได้ทันทีโดยไม่ต้องรันเอง
