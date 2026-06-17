@@ -46,14 +46,23 @@ PRODUCTS = pd.DataFrame({
     ],
     # baseline demand ต่อวัน (สินค้าขายเร็ว vs ขายช้า ต่างกัน)
     "base_demand": [40, 35, 25, 30, 12, 10, 18, 22, 8, 6],
-    "unit_price":  [7, 6, 12, 15, 45, 55, 120, 8, 35, 220],
+    # คอลัมน์ "price" ตรงตามสไลด์หน้า 5 (Product Master: product_id, price, ...)
+    "price":  [7, 6, 12, 15, 45, 55, 120, 8, 35, 220],
 })
 
 STORES = pd.DataFrame({
     "store_id":     ["S01", "S02"],
     "store_name":   ["สาขาตลาดสด", "สาขาหมู่บ้าน"],
-    "store_type":   ["Community Market", "Residential"],
+    "store_type":   ["Community Market", "Residential"],   # = store_taxonomies (สไลด์หน้า 5)
     "province":     ["Bangkok", "Nonthaburi"],
+})
+
+# Customer Master — Dimension table ตามแผนผังสไลด์หน้า 4 (เชื่อมผ่าน customer_id)
+# ใช้สำหรับการแบ่งกลุ่มลูกค้า (segmentation) ในเฟส 2
+CUSTOMERS = pd.DataFrame({
+    "customer_id": [f"C{2000+i}" for i in range(30)],
+    "segment": [["Member-Gold", "Member-Silver", "Regular"][i % 3] for i in range(30)],
+    "home_province": [["Bangkok", "Nonthaburi"][i % 2] for i in range(30)],
 })
 
 PROMOTIONS = pd.DataFrame({
@@ -70,6 +79,7 @@ PROMOTIONS = pd.DataFrame({
 sales_rows, inv_rows = [], []
 po_rows = []
 po_counter = 0
+customer_ids = CUSTOMERS["customer_id"].tolist()
 
 for _, store in STORES.iterrows():
     for _, prod in PRODUCTS.iterrows():
@@ -129,17 +139,26 @@ for _, store in STORES.iterrows():
                 "stockout_flag": stockout_flag,
             })
 
-            # บันทึก Sales transaction (ถ้ามีการขาย)
-            if sold > 0:
+            # บันทึก Sales transaction ระดับรายการ (ถ้ามีการขาย)
+            # แตกยอดขายของวันออกเป็นหลายบิล (basket) แต่ละบิลมี customer_id
+            # -> ตรงตามสไลด์หน้า 5: datetime, product_id, qty, price, customer_id, promotion_id, store_id, po_id
+            remaining = int(sold)
+            while remaining > 0:
+                q = min(remaining, int(RNG.integers(1, 7)))   # บิลละ 1-6 ชิ้น
+                # ~45% เป็นลูกค้าเดินเข้า (walk-in) ไม่มี customer_id
+                cust = str(RNG.choice(customer_ids)) if RNG.random() < 0.55 else ""
                 sales_rows.append({
-                    "datetime": (date + pd.Timedelta(hours=int(RNG.integers(8, 20)))),
+                    "datetime": (date + pd.Timedelta(hours=int(RNG.integers(8, 20)),
+                                                     minutes=int(RNG.integers(0, 60)))),
                     "product_id": prod["product_id"],
-                    "store_id": store["store_id"],
-                    "qty": int(sold),
-                    "unit_price": float(prod["unit_price"]),
+                    "qty": int(q),
+                    "price": float(prod["price"]),
+                    "customer_id": cust,
                     "promotion_id": promo_id,
+                    "store_id": store["store_id"],
                     "po_id": "",
                 })
+                remaining -= q
 
             # ----- ปรับสต็อกจริงหลังขาย/หาย + ตัดสินใจสั่งซื้อ (Min-Max rule) -----
             stock = stock_physical
@@ -177,6 +196,25 @@ sales = pd.concat([sales, orphan], ignore_index=True)
 sales = sales.sort_values("datetime").reset_index(drop=True)
 
 # ---------------------------------------------------------------------------
+# 3.5) Store Traffic (Mock สำหรับเฟส 2 — สไลด์หน้า 7 ข้อ 01)
+#      ใช้พิสูจน์การคำนวณ Lost Sales: วันที่ "คนแน่นแต่ยอดตกเพราะของขาด"
+# ---------------------------------------------------------------------------
+traffic_rows = []
+for _, store in STORES.iterrows():
+    base_traffic = 220 if store["store_id"] == "S01" else 140
+    for d in range(N_DAYS):
+        date = START_DATE + pd.Timedelta(days=d)
+        weekend_boost = 1.3 if date.dayofweek >= 5 else 1.0
+        visitors = int(RNG.poisson(base_traffic * weekend_boost))
+        traffic_rows.append({
+            "date": date.date(),
+            "store_id": store["store_id"],
+            "zone": "Front" if store["store_id"] == "S01" else "Residential",
+            "visitor_count": visitors,
+        })
+store_traffic = pd.DataFrame(traffic_rows)
+
+# ---------------------------------------------------------------------------
 # 4) เขียนไฟล์
 # ---------------------------------------------------------------------------
 def save(df, name):
@@ -187,8 +225,10 @@ def save(df, name):
 print("เขียนไฟล์ข้อมูลจำลองลง data/raw/ :")
 save(PRODUCTS, "product_master.csv")
 save(STORES, "store_master.csv")
+save(CUSTOMERS, "customer_master.csv")
 save(PROMOTIONS, "promotion_master.csv")
 save(sales, "sales_transaction.csv")
 save(inventory, "inventory.csv")
 save(purchase_orders, "purchase_order.csv")
+save(store_traffic, "store_traffic.csv")
 print("เสร็จสิ้น (done)")

@@ -16,6 +16,7 @@ flowchart LR
     subgraph DIM["Dimension Tables"]
         PM[Product Master]
         SM[Store Master]
+        CM[Customer Master]
         PRM[Promotion Master]
     end
 
@@ -34,7 +35,7 @@ flowchart LR
     end
 
     POS & INV & PO --> CLEAN
-    PM & SM & PRM -. join .-> CLEAN
+    PM & SM & CM & PRM -. join .-> CLEAN
     CLEAN --> FC --> ROP --> ALERT
     ALERT --> PROMO
 ```

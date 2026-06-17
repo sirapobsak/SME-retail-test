@@ -1,4 +1,4 @@
 ﻿check,issue_rows,note
 Orphan FK (sales -> product master),8,พนักงานคีย์รหัสสินค้าที่ไม่มีในระบบ -> join ไม่ติด
-Ghost Inventory (system != physical),43,ระบบคิดว่ามีของ แต่ของจริงหาย/ชำรุด -> AI ไม่เตือนสั่งซื้อ
-Late delivery POs (delay_days > 0),213,Lead Time จริง > ที่สัญญา -> ต้องเผื่อ Safety Stock
+Ghost Inventory (system != physical),57,ระบบคิดว่ามีของ แต่ของจริงหาย/ชำรุด -> AI ไม่เตือนสั่งซื้อ
+Late delivery POs (delay_days > 0),237,Lead Time จริง > ที่สัญญา -> ต้องเผื่อ Safety Stock

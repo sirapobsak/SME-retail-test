@@ -1,4 +1,4 @@
-﻿product_id,product_name,category,base_demand,unit_price
+﻿product_id,product_name,category,base_demand,price
 P1000,น้ำดื่ม 600ml,Beverage,40,7
 P1001,บะหมี่กึ่งสำเร็จรูป,Dry Food,35,6
 P1002,นมกล่อง UHT,Dairy,25,12
